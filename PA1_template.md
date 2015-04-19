@@ -29,7 +29,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 ### Loading and preprocessing the data
 
-```{r}
+
+```r
 ## Checks if source file exist.
 if (!file.exists("activity.csv")) {
 
@@ -51,24 +52,49 @@ data <- read.csv("activity.csv", header = TRUE, stringsAsFactors = FALSE)
 summary(data)
 ```
 
+```
+##      steps            date              interval     
+##  Min.   :  0.00   Length:17568       Min.   :   0.0  
+##  1st Qu.:  0.00   Class :character   1st Qu.: 588.8  
+##  Median :  0.00   Mode  :character   Median :1177.5  
+##  Mean   : 37.38                      Mean   :1177.5  
+##  3rd Qu.: 12.00                      3rd Qu.:1766.2  
+##  Max.   :806.00                      Max.   :2355.0  
+##  NA's   :2304
+```
+
 Raw data has a __date__ column imported as character, that needs to be converted to date.
 
-```{r}
+
+```r
 ## Converts date column from character to date.
 data$date <- as.Date(data$date)
 summary(data)
 ```
 
+```
+##      steps             date               interval     
+##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
+##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
+##  Median :  0.00   Median :2012-10-31   Median :1177.5  
+##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
+##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
+##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##  NA's   :2304
+```
+
 ### Loading required packages for data preparation and reporting
 
-```{r warning=FALSE}
+
+```r
 require(dplyr)
 require(ggplot2)
 ```
 
 ### What is mean total number of steps taken per day?
 
-```{r warning=FALSE}
+
+```r
 ## Prepares data for reporting, by calculating 
 ## the total number of steps taken each day.
 repData <- data %>% group_by(date) %>% summarise(steps = sum(steps))
@@ -84,7 +110,11 @@ ggplot(repData, aes(steps)) +
     geom_vline(aes(xintercept = meanSteps, colour = "mean"), 
                linetype = "dashed", size = 1, show_guide = TRUE) +
     scale_colour_manual(name = "", values = c("mean" = "red"))
+```
 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
+
+```r
 ## Plots a bar graph of the total number of steps
 ## taken each day showing the mean as a horizontal line.
 ggplot(repData, aes(x=date, y=steps)) + 
@@ -92,19 +122,21 @@ ggplot(repData, aes(x=date, y=steps)) +
     geom_hline(aes(yintercept = meanSteps, colour = "mean"), 
                linetype = "dashed", size = 1, show_guide = TRUE) +
     scale_colour_manual(name = "", values = c("mean" = "red"))
-
 ```
 
-`r options(scipen=10, digits=3)`
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-2.png) 
+
+
 Mean and median of total number of steps taken per day:
 
 Mean          | Median   
 --------------|----------------
-`r meanSteps` | `r medianSteps`
+10766.189 | 10765
 
 ### What is the average daily activity pattern?
 
-```{r warning=FALSE}
+
+```r
 ## Prepares data for reporting, by calculating 
 ## the average number of steps taken each interval.
 repData <- data %>% group_by(interval) %>% 
@@ -121,22 +153,26 @@ ggplot(repData, aes(x = interval, y = steps)) + geom_line() +
     scale_color_manual(name = "", values = c("max" = "red"))
 ```
 
-__`r maxInterval`__ is the 5-minute interval, that contains the maximum number of steps, on average across all the days in the dataset.
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
+__835__ is the 5-minute interval, that contains the maximum number of steps, on average across all the days in the dataset.
 
 ### Imputing missing values
 
 There are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
-```{r}
+
+```r
 ## Calculates the total number of missing values in the dataset.
 missingValues <- sum(is.na(data$steps))
 ```
 
-The total number of missing values in the dataset is __`r missingValues`__.
+The total number of missing values in the dataset is __2304__.
 
 Missing values have been imputed by filling in all of them in the dataset using the mean for the corresponding 5-minute interval, calculated in the previous step.
 
-```{r}
+
+```r
 ## Creates a new dataset that is equal to the original dataset 
 ## but with the missing data filled in.
 impData <- data
@@ -159,19 +195,22 @@ ggplot(repData, aes(steps)) +
     scale_colour_manual(name = "", values = c("mean" = "red"))
 ```
 
-`r options(scipen=10, digits=3)`
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
+
+
 Mean and median of total number of steps taken per day:
 
 Data  | Before imputing  | After imputing
 ------|------------------|-------------------
-Mean  | `r meanSteps`    | `r meanStepsImp`
-Median| `r medianSteps`  | `r medianStepsImp`
+Mean  | 10766.189    | 10766.189
+Median| 10765  | 10766.189
 
 It can be seen that that mean value has not changed, but median equals to mean after imputing missing values by filling in using the mean for the corresponding 5-minute interval.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 ## Adds weekday/weekend information to imputed dataset.
 dayType <- as.factor(c("weekend", "weekday", "weekday", "weekday", "weekday", "weekday", "weekend"))
 impData$daytype <- dayType[as.POSIXlt(impData$date)$wday + 1]
@@ -188,3 +227,5 @@ ggplot(repData, aes(x = interval, y = steps)) +
     facet_wrap(~daytype, ncol = 1) +
     geom_line()
 ```
+
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 
